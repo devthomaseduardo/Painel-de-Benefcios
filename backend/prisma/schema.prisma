@@ -32,6 +32,9 @@ model User {
   name            String
   password        String
   role            String   @default("employee") // owner, hr_admin, manager, employee, viewer
+  provider        String   @default("local")
+  providerId      String?  @unique
+  avatarUrl       String?
   
   organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id])

@@ -1,11 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 export default function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, googleLogin } = useAuth();
   const router = useRouter();
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
   
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [error, setError] = useState('');
@@ -20,6 +27,60 @@ export default function LoginPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regOrg, setRegOrg] = useState('');
+
+  useEffect(() => {
+    if (!googleClientId || typeof window === 'undefined') return;
+
+    const loadGoogle = () => {
+      const google = window.google;
+      if (!google || !google.accounts?.id) return;
+
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+        ux_mode: 'popup',
+      });
+
+      const button = document.getElementById('google-signin-button');
+      if (button) {
+        google.accounts.id.renderButton(button, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+        });
+      }
+    };
+
+    if (window.google && window.google.accounts?.id) {
+      loadGoogle();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = loadGoogle;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [googleClientId]);
+
+  const handleGoogleCredential = async (response: any) => {
+    if (!response?.credential) return;
+    setError('');
+    setLoading(true);
+    try {
+      await googleLogin(response.credential);
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro no login com Google');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +216,30 @@ export default function LoginPage() {
             <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 8, fontSize: 13, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               {error}
+            </div>
+          )}
+
+          {tab === 'login' && (
+            <div style={{ marginBottom: 20 }}>
+              <div id="google-signin-button" />
+              {!googleClientId && (
+                <button
+                  type="button"
+                  disabled
+                  style={{
+                    width: '100%',
+                    background: '#1e293b',
+                    color: '#94a3b8',
+                    border: '1px solid #334155',
+                    padding: '12px',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    cursor: 'not-allowed',
+                  }}
+                >
+                  Google SSO não configurado
+                </button>
+              )}
             </div>
           )}
 

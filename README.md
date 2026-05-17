@@ -61,11 +61,13 @@ npm run dev
 
 ## Deploy no Vercel
 
-Para deploy no Vercel, use o diretório de projeto `frontend` e configure a variável de ambiente:
+Para deploy no Vercel, use o diretório de projeto `frontend` e configure as variáveis de ambiente:
 
 - `NEXT_PUBLIC_API_URL=https://<url-do-backend>`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID=<seu-google-client-id>`
+- `GOOGLE_CLIENT_ID=<seu-google-client-id>`
 
-O aplicativo frontend usará esta URL para enviar requisições à API.
+O aplicativo frontend usará `NEXT_PUBLIC_API_URL` para enviar requisições à API e `NEXT_PUBLIC_GOOGLE_CLIENT_ID` para o login com Google.
 
 ## Observações para Recrutadores
 
