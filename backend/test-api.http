@@ -1,0 +1,36 @@
+### Base Route
+GET http://localhost:5000/
+
+### Get Dashboard Stats
+GET http://localhost:5000/api/dashboard/stats
+
+### List Benefits
+GET http://localhost:5000/api/benefits
+
+### Create a Benefit
+POST http://localhost:5000/api/benefits
+Content-Type: application/json
+
+{
+  "name": "Vale Cultura",
+  "description": "Auxílio para cinema e livros",
+  "type": "culture",
+  "cost": 100.0,
+  "provider": "Sodexo"
+}
+
+### List Employees
+GET http://localhost:5000/api/employees
+
+### Create an Employee
+POST http://localhost:5000/api/employees
+Content-Type: application/json
+
+{
+  "name": "Neo",
+  "email": "neo@zion.com",
+  "cpf": "000.000.000-01",
+  "department": "Freedom",
+  "position": "The One",
+  "salary": 0.0
+}

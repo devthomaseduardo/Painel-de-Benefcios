@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  plan        String   @default("free") // free, pro, enterprise
+  active      Boolean  @default(true)
+  
+  users       User[]
+  employees   Employee[]
+  benefits    Benefit[]
+  departments Department[]
+  auditLogs   AuditLog[]
+  notifications Notification[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  name            String
+  password        String
+  role            String   @default("employee") // owner, hr_admin, manager, employee, viewer
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@index([organizationId])
+}
+
+model Department {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  employees       Employee[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@unique([name, organizationId])
+}
+
+model Employee {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  cpf             String   @unique
+  position        String
+  salary          Float
+  status          String   @default("onboarding") // active, onboarding, vacation, suspended, terminated
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  departmentId    String
+  department      Department @relation(fields: [departmentId], references: [id])
+  
+  benefits        Benefit[]
+  history         EmployeeHistory[]
+  timeTrackings   TimeTracking[]
+  payrolls        Payroll[]
+  leaves          Leave[]
+  offboarding     Offboarding?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@index([organizationId])
+  @@index([departmentId])
+}
+
+model Benefit {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  type            String   // health, food, transport, culture, other
+  cost            Float
+  provider        String
+  status          String   @default("pending") // pending, approved, denied, expired
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  employees       Employee[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@index([organizationId])
+}
+
+model EmployeeHistory {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  
+  field       String   // salary, position, status, department
+  oldValue    String?
+  newValue    String?
+  
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  userId          String?
+  user            User? @relation(fields: [userId], references: [id])
+  
+  action          String   // create, update, delete, login
+  entityType      String   // employee, benefit, user, etc
+  entityId        String?
+  
+  oldData         Json?
+  newData         Json?
+  ipAddress       String?
+  userAgent       String?
+  
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId])
+}
+
+model Notification {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  userId          String
+  user            User @relation(fields: [userId], references: [id])
+  
+  title           String
+  description     String
+  type            String   // info, alert, success
+  read            Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model TimeTracking {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  
+  date        DateTime
+  clockIn     DateTime?
+  clockOut    DateTime?
+  status      String   @default("present") // present, absent, late, half_day
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([employeeId])
+}
+
+model Payroll {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  
+  month       Int
+  year        Int
+  baseSalary  Float
+  additions   Float    @default(0) // overtime, bonuses
+  deductions  Float    @default(0) // taxes, absences
+  netSalary   Float
+  status      String   @default("draft") // draft, processing, paid
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([employeeId])
+  @@unique([employeeId, month, year])
+}
+
+model Leave {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  
+  type        String   // vacation, sick, maternity, bereavement
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("pending") // pending, approved, rejected
+  reason      String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([employeeId])
+}
+
+model Offboarding {
+  id              String   @id @default(uuid())
+  employeeId      String   @unique
+  employee        Employee @relation(fields: [employeeId], references: [id])
+  
+  terminationDate DateTime
+  reason          String
+  type            String   // voluntary, involuntary, retirement
+  notes           String?
+  status          String   @default("pending") // pending, processing, completed
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([employeeId])
+}
