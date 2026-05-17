@@ -1,18 +1,14 @@
 /** @type {import('next').NextConfig} */
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const nextConfig = {
   async rewrites() {
-    if (!API_URL) {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://localhost:5000/api/:path*',
-        },
-      ];
-    }
-
-    return [];
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${API_URL.replace(/\/$/, '')}/api/:path*`,
+      },
+    ];
   },
   async headers() {
     return [

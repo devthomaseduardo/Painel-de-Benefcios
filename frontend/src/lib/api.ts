@@ -1,7 +1,5 @@
-// API client — can use a remote backend URL in production, or local /api rewrites in development
-const BASE = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api`
-  : '/api';
+// API client — always use /api and let Next.js rewrites forward requests to the backend.
+const BASE = '/api';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
