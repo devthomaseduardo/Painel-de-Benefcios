@@ -15,7 +15,10 @@ export default function LoginPage() {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
   
   const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [error, setError] = useState('');
+  
+  // Custom Alert State
+  const [alertInfo, setAlertInfo] = useState<{ type: 'error' | 'success', message: string } | null>(null);
+  
   const [loading, setLoading] = useState(false);
 
   // Formulário Login
@@ -70,13 +73,13 @@ export default function LoginPage() {
 
   const handleGoogleCredential = async (response: any) => {
     if (!response?.credential) return;
-    setError('');
+    setAlertInfo(null);
     setLoading(true);
     try {
       await googleLogin(response.credential);
       router.push('/dashboard');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro no login com Google');
+      setAlertInfo({ type: 'error', message: err instanceof Error ? err.message : 'Erro no login com Google' });
     } finally {
       setLoading(false);
     }
@@ -84,18 +87,18 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setAlertInfo(null); setLoading(true);
     try {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+      setAlertInfo({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao fazer login. Verifique suas credenciais.' });
     } finally { setLoading(false); }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setAlertInfo(null); setLoading(true);
     try {
       await register({
         name: regName,
@@ -105,10 +108,9 @@ export default function LoginPage() {
         organizationSlug: regOrg.toLowerCase().replace(/\s+/g, '-'),
       });
       setTab('login');
-      setError('');
-      alert('Organização criada! Faça login para continuar.');
+      setAlertInfo({ type: 'success', message: 'Organização criada com sucesso! Faça login para continuar.' });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao registrar');
+      setAlertInfo({ type: 'error', message: err instanceof Error ? err.message : 'Erro ao registrar' });
     } finally { setLoading(false); }
   };
 
@@ -187,7 +189,7 @@ export default function LoginPage() {
             {(['login', 'register'] as const).map(t => (
               <button
                 key={t}
-                onClick={() => { setTab(t); setError(''); }}
+                onClick={() => { setTab(t); setAlertInfo(null); }}
                 className="btn"
                 style={{
                   flex: 1, justifyContent: 'center',
@@ -212,33 +214,84 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {error && (
-            <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 8, fontSize: 13, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {error}
+          {alertInfo && (
+            <div style={{ 
+              padding: '12px 16px', 
+              background: alertInfo.type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', 
+              border: `1px solid ${alertInfo.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`, 
+              color: alertInfo.type === 'error' ? '#ef4444' : '#10b981', 
+              borderRadius: 8, 
+              fontSize: 13, 
+              marginBottom: 24, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8,
+              animation: 'fadeIn 0.3s ease-out'
+            }}>
+              {alertInfo.type === 'error' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              )}
+              {alertInfo.message}
             </div>
           )}
 
           {tab === 'login' && (
             <div style={{ marginBottom: 20 }}>
-              <div id="google-signin-button" />
-              {!googleClientId && (
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div id="google-signin-button" />
+                </div>
+                
                 <button
                   type="button"
-                  disabled
+                  onClick={() => setAlertInfo({ type: 'error', message: 'GitHub SSO em breve será configurado. Por favor, utilize o Google ou Email.' })}
                   style={{
-                    width: '100%',
-                    background: '#1e293b',
-                    color: '#94a3b8',
+                    flex: 1,
+                    background: '#24292f',
+                    color: '#fff',
                     border: '1px solid #334155',
-                    padding: '12px',
-                    borderRadius: 8,
+                    padding: '0 12px',
+                    borderRadius: 4,
                     fontSize: 14,
-                    cursor: 'not-allowed',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    height: 40,
+                    transition: 'all 0.2s',
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1b1f23'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#24292f'}
                 >
-                  Google SSO não configurado
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+                  </svg>
+                  GitHub
                 </button>
+              </div>
+              {!googleClientId && (
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    disabled
+                    style={{
+                      width: '100%',
+                      background: '#1e293b',
+                      color: '#94a3b8',
+                      border: '1px solid #334155',
+                      padding: '12px',
+                      borderRadius: 8,
+                      fontSize: 14,
+                      cursor: 'not-allowed',
+                    }}
+                  >
+                    Google SSO não configurado
+                  </button>
+                </div>
               )}
             </div>
           )}
