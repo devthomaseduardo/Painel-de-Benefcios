@@ -33,8 +33,6 @@ export const api = {
   auth: {
     login: (email: string, password: string) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-    googleLogin: (idToken: string) =>
-      request('/auth/google', { method: 'POST', body: JSON.stringify({ idToken }) }),
     register: (body: { name: string; email: string; password: string; organizationName: string; organizationSlug: string }) =>
       request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   },

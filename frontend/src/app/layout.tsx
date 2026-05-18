@@ -3,7 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'BenefitPanel — Enterprise HR Suite',
+  title: 'GestorRH — Enterprise HR Suite',
   description: 'Painel de gestão de benefícios corporativos com Multi-tenant, RBAC e Audit Trail.',
 };
 

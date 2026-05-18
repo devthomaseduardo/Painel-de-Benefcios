@@ -303,7 +303,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} />
                     <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
                     <Tooltip
-                      contentStyle={{ background: '#161b25', border: '1px solid #1f2937', borderRadius: 8, fontSize: 12 }}
+                      contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12, color: '#0f172a' }}
                       cursor={{ fill: 'rgba(37,99,235,0.08)' }}
                     />
                     <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                     </Pie>
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#64748b' }} />
                     <Tooltip
-                      contentStyle={{ background: '#161b25', border: '1px solid #1f2937', borderRadius: 8, fontSize: 12 }}
+                      contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12, color: '#0f172a' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>

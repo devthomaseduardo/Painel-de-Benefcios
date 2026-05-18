@@ -150,7 +150,7 @@ export default function Sidebar() {
           </svg>
         </div>
         <div>
-          <div className="logo-text">BenefitPanel</div>
+          <div className="logo-text">GestorRH</div>
           <div className="logo-sub">Enterprise</div>
         </div>
       </div>

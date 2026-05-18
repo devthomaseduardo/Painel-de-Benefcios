@@ -1,24 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
+import { ShieldCheck, Building, Lock, ArrowRight, Command } from 'lucide-react';
 
 export default function LoginPage() {
-  const { login, register, googleLogin } = useAuth();
+  const { login, register } = useAuth();
   const router = useRouter();
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
   
   const [tab, setTab] = useState<'login' | 'register'>('login');
-  
-  // Custom Alert State
   const [alertInfo, setAlertInfo] = useState<{ type: 'error' | 'success', message: string } | null>(null);
-  
   const [loading, setLoading] = useState(false);
 
   // Formulário Login
@@ -30,60 +21,6 @@ export default function LoginPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regOrg, setRegOrg] = useState('');
-
-  useEffect(() => {
-    if (!googleClientId || typeof window === 'undefined') return;
-
-    const loadGoogle = () => {
-      const google = window.google;
-      if (!google || !google.accounts?.id) return;
-
-      google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: handleGoogleCredential,
-        ux_mode: 'popup',
-      });
-
-      const button = document.getElementById('google-signin-button');
-      if (button) {
-        google.accounts.id.renderButton(button, {
-          theme: 'outline',
-          size: 'large',
-          width: '100%',
-        });
-      }
-    };
-
-    if (window.google && window.google.accounts?.id) {
-      loadGoogle();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = loadGoogle;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [googleClientId]);
-
-  const handleGoogleCredential = async (response: any) => {
-    if (!response?.credential) return;
-    setAlertInfo(null);
-    setLoading(true);
-    try {
-      await googleLogin(response.credential);
-      router.push('/dashboard');
-    } catch (err: unknown) {
-      setAlertInfo({ type: 'error', message: err instanceof Error ? err.message : 'Erro no login com Google' });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,279 +52,275 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0c10', color: '#e5e7eb' }}>
-      
-      {/* Coluna Esquerda - Branding Enterprise */}
-      <div style={{ 
-        flex: 1, 
-        background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)', 
-        borderRight: '1px solid var(--border)',
-        padding: '60px 80px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Background Patterns / Glow */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)', zIndex: 0 }} />
+    <div className="login-container">
+      <style>{`
+        .login-container {
+          min-height: 100vh;
+          display: flex;
+          background: #09090b;
+          color: #fafafa;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          position: relative;
+          overflow: hidden;
+        }
         
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 80 }}>
-            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(37,99,235,0.4)' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2"/>
-                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                <line x1="12" y1="12" x2="12" y2="16"/>
-                <line x1="10" y1="14" x2="14" y2="14"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', color: '#fff' }}>BenefitPanel<span style={{ color: '#3b82f6' }}>.</span></span>
-          </div>
+        /* Premium Background Effects */
+        .bg-glow-1 {
+          position: absolute;
+          top: -20%;
+          left: -10%;
+          width: 70vw;
+          height: 70vw;
+          background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, rgba(9,9,11,0) 70%);
+          border-radius: 50%;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .bg-glow-2 {
+          position: absolute;
+          bottom: -20%;
+          right: -10%;
+          width: 60vw;
+          height: 60vw;
+          background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(9,9,11,0) 70%);
+          border-radius: 50%;
+          z-index: 0;
+          pointer-events: none;
+        }
 
-          <h1 style={{ fontSize: 52, fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.04em', color: '#fff', marginBottom: 32, maxWidth: 540 }}>
-            Eleve a gestão de benefícios da sua empresa.
-          </h1>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              { text: 'Arquitetura Multi-Tenant com isolamento total de dados' },
-              { text: 'Provisionamento automático e auditoria em tempo real' },
-              { text: 'Dashboard analítico para controle de custos e utilização' }
-            ].map((feature, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 16, color: '#cbd5e1' }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                {feature.text}
-              </li>
-            ))}
-          </ul>
+        .login-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+          padding: 24px;
+        }
+
+        .login-card {
+          width: 100%;
+          max-width: 420px;
+          background: rgba(24, 24, 27, 0.6);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          overflow: hidden;
+        }
+
+        .input-corp {
+          width: 100%;
+          background: rgba(9, 9, 11, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #fafafa;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          outline: none;
+          transition: all 0.2s ease;
+        }
+        .input-corp::placeholder { color: #52525b; }
+        .input-corp:focus {
+          border-color: #3b82f6;
+          background: rgba(9, 9, 11, 0.8);
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-corp {
+          width: 100%;
+          background: #fafafa;
+          color: #09090b;
+          border: none;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .btn-corp:hover { 
+          background: #e4e4e7; 
+          transform: translateY(-1px);
+        }
+        .btn-corp:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .tab-container {
+          display: flex;
+          padding: 4px;
+          background: rgba(9, 9, 11, 0.5);
+          border-radius: 10px;
+          margin-bottom: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+          flex: 1;
+          padding: 8px 12px;
+          background: transparent;
+          border: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #a1a1aa;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .tab-btn.active {
+          color: #fafafa;
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .brand-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 40px;
+        }
+        
+        .brand-icon {
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+        }
+      `}</style>
+
+      <div className="bg-glow-1" />
+      <div className="bg-glow-2" />
+
+      <div className="login-content">
+        <div className="brand-header">
+          <div className="brand-icon">
+            <Command size={20} color="#ffffff" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, letterSpacing: '-0.03em', color: '#fafafa' }}>GestorRH</h1>
+            <p style={{ fontSize: 13, color: '#a1a1aa', marginTop: 2 }}>Enterprise OS</p>
+          </div>
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1, marginTop: 60 }}>
-          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, color: '#475569', marginBottom: 20 }}>Empresas que confiam na nossa tecnologia</div>
-          <div style={{ display: 'flex', gap: 32, opacity: 0.5, filter: 'grayscale(100%)', alignItems: 'center' }}>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.05em' }}>ACME Corp</div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.05em' }}>Globex</div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.05em' }}>Soylent</div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.05em' }}>Initech</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Coluna Direita - Formulário */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        background: '#0a0c10' 
-      }}>
-        <div style={{ width: '100%', maxWidth: 420, padding: '0 32px' }}>
-          
-          <div style={{ display: 'flex', gap: 4, marginBottom: 32, background: 'var(--bg-elevated)', borderRadius: 10, padding: 4 }}>
-            {(['login', 'register'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setAlertInfo(null); }}
-                className="btn"
-                style={{
-                  flex: 1, justifyContent: 'center',
-                  background: tab === t ? 'var(--bg-surface)' : 'transparent',
-                  color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-                  border: tab === t ? '1px solid var(--border)' : '1px solid transparent',
-                  fontWeight: tab === t ? 600 : 400,
-                  fontSize: 13, padding: '8px 12px'
-                }}
-              >
-                {t === 'login' ? 'Acessar Conta' : 'Criar Organização'}
+        <div className="login-card">
+          <div style={{ padding: '32px' }}>
+            <div className="tab-container">
+              <button className={`tab-btn ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>
+                Acesso Seguro
               </button>
-            ))}
-          </div>
-
-          <div style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', marginBottom: 8 }}>
-              {tab === 'login' ? 'Bem-vindo de volta' : 'Setup Inicial'}
-            </h2>
-            <p style={{ fontSize: 14, color: '#64748b' }}>
-              {tab === 'login' ? 'Insira suas credenciais corporativas.' : 'Provisione seu ambiente isolado.'}
-            </p>
-          </div>
-
-          {alertInfo && (
-            <div style={{ 
-              padding: '12px 16px', 
-              background: alertInfo.type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', 
-              border: `1px solid ${alertInfo.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`, 
-              color: alertInfo.type === 'error' ? '#ef4444' : '#10b981', 
-              borderRadius: 8, 
-              fontSize: 13, 
-              marginBottom: 24, 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 8,
-              animation: 'fadeIn 0.3s ease-out'
-            }}>
-              {alertInfo.type === 'error' ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              )}
-              {alertInfo.message}
+              <button className={`tab-btn ${tab === 'register' ? 'active' : ''}`} onClick={() => setTab('register')}>
+                Novo Workspace
+              </button>
             </div>
-          )}
 
-          {tab === 'login' && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div id="google-signin-button" />
+            {alertInfo && (
+              <div style={{ 
+                padding: '12px 16px', 
+                background: alertInfo.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                border: `1px solid ${alertInfo.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`, 
+                color: alertInfo.type === 'error' ? '#fca5a5' : '#6ee7b7', 
+                borderRadius: 8, 
+                fontSize: 13, 
+                marginBottom: 24,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12
+              }}>
+                <ShieldCheck size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ lineHeight: 1.5 }}>{alertInfo?.message}</div>
+              </div>
+            )}
+
+            {tab === 'login' ? (
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#e4e4e7', marginBottom: 8 }}>E-mail Corporativo</label>
+                  <input 
+                    type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="nome@empresa.com.br"
+                    className="input-corp"
+                  />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label style={{ fontSize: 13, fontWeight: 500, color: '#e4e4e7' }}>Senha de Acesso</label>
+                    <a href="#" style={{ fontSize: 12, color: '#60a5fa', textDecoration: 'none', fontWeight: 500 }}>Recuperar senha</a>
+                  </div>
+                  <input 
+                    type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••"
+                    className="input-corp"
+                  />
+                </div>
+
+                <button type="submit" className="btn-corp" disabled={loading} style={{ marginTop: 8 }}>
+                  {loading ? 'Autenticando...' : (
+                    <>
+                      Continuar <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#e4e4e7', marginBottom: 8 }}>Nome Completo</label>
+                  <input 
+                    type="text" value={regName} onChange={e => setRegName(e.target.value)} required placeholder="Seu nome"
+                    className="input-corp"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#e4e4e7', marginBottom: 8 }}>E-mail Corporativo</label>
+                  <input 
+                    type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} required placeholder="email@empresa.com.br"
+                    className="input-corp"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#e4e4e7', marginBottom: 8 }}>Senha</label>
+                  <input 
+                    type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} required placeholder="••••••••"
+                    className="input-corp"
+                  />
+                </div>
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '4px 0' }} />
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#e4e4e7', marginBottom: 8 }}>Nome da Empresa</label>
+                  <input 
+                    type="text" value={regOrg} onChange={e => setRegOrg(e.target.value)} required placeholder="Ex: Acme Corp"
+                    className="input-corp"
+                  />
                 </div>
                 
-                <button
-                  type="button"
-                  onClick={() => setAlertInfo({ type: 'error', message: 'GitHub SSO em breve será configurado. Por favor, utilize o Google ou Email.' })}
-                  style={{
-                    flex: 1,
-                    background: '#24292f',
-                    color: '#fff',
-                    border: '1px solid #334155',
-                    padding: '0 12px',
-                    borderRadius: 4,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    height: 40,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#1b1f23'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#24292f'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
-                  </svg>
-                  GitHub
+                <button type="submit" className="btn-corp" disabled={loading} style={{ marginTop: 8 }}>
+                  {loading ? 'Provisionando...' : 'Criar Workspace'}
                 </button>
-              </div>
-              {!googleClientId && (
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    type="button"
-                    disabled
-                    style={{
-                      width: '100%',
-                      background: '#1e293b',
-                      color: '#94a3b8',
-                      border: '1px solid #334155',
-                      padding: '12px',
-                      borderRadius: 8,
-                      fontSize: 14,
-                      cursor: 'not-allowed',
-                    }}
-                  >
-                    Google SSO não configurado
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {tab === 'login' ? (
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>E-mail Corporativo</label>
-                <input 
-                  type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="nome@suaempresa.com.br"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '12px 16px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}
-                  onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)'; }}
-                  onBlur={e => { e.target.style.borderColor = '#1e293b'; e.target.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)'; }}
-                />
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <label style={{ fontSize: 13, fontWeight: 500, color: '#cbd5e1' }}>Senha</label>
-                  <span style={{ fontSize: 12, color: '#3b82f6', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#60a5fa'} onMouseLeave={e => e.currentTarget.style.color = '#3b82f6'}>Esqueceu a senha?</span>
-                </div>
-                <input 
-                  type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '12px 16px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}
-                  onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)'; }}
-                  onBlur={e => { e.target.style.borderColor = '#1e293b'; e.target.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)'; }}
-                />
-              </div>
-              <button 
-                type="submit" disabled={loading}
-                style={{ width: '100%', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', border: 'none', padding: '14px', borderRadius: 8, fontSize: 15, fontWeight: 600, marginTop: 8, cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(37,99,235,0.4)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)'; }}
-                onMouseDown={e => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(37,99,235,0.3)'; }}
-              >
-                {loading ? 'Autenticando SSO...' : 'Acessar Workspace'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>Nome Completo (Administrador)</label>
-                <input 
-                  type="text" value={regName} onChange={e => setRegName(e.target.value)} required placeholder="Ex: Thomas Silva"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'border 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#2563eb'}
-                  onBlur={e => e.target.style.borderColor = '#1e293b'}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>E-mail Corporativo</label>
-                <input 
-                  type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} required placeholder="thomas@suaempresa.com.br"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'border 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#2563eb'}
-                  onBlur={e => e.target.style.borderColor = '#1e293b'}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>Senha Administrativa</label>
-                <input 
-                  type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} required placeholder="••••••••"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'border 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#2563eb'}
-                  onBlur={e => e.target.style.borderColor = '#1e293b'}
-                />
-              </div>
-              <div style={{ height: 1, background: '#1e293b', margin: '8px 0' }} />
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#cbd5e1', marginBottom: 6 }}>Nome da Empresa / Razão Social</label>
-                <input 
-                  type="text" value={regOrg} onChange={e => setRegOrg(e.target.value)} required placeholder="Ex: Acme Corp do Brasil LTDA"
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #1e293b', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 14, outline: 'none', transition: 'border 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#2563eb'}
-                  onBlur={e => e.target.style.borderColor = '#1e293b'}
-                />
-              </div>
-              
-              <button 
-                type="submit" disabled={loading}
-                style={{ width: '100%', background: '#f8fafc', color: '#0f172a', border: 'none', padding: '12px', borderRadius: 8, fontSize: 14, fontWeight: 700, marginTop: 8, cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.transform = 'none'; }}
-              >
-                {loading ? 'Provisionando Ambiente...' : 'Criar Conta Enterprise'}
-              </button>
-            </form>
-          )}
-
-          <div style={{ marginTop: 40, borderTop: '1px solid #1e293b', paddingTop: 24, display: 'flex', justifyContent: 'center', gap: 24, color: '#475569', fontSize: 12 }}>
-            <span>© 2026 BenefitPanel</span>
-            <span style={{ cursor: 'pointer' }}>Privacy</span>
-            <span style={{ cursor: 'pointer' }}>Terms</span>
+              </form>
+            )}
+          </div>
+          
+          <div style={{ background: 'rgba(9, 9, 11, 0.3)', padding: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#71717a', fontSize: 12 }}>
+            <Lock size={12} />
+            <span>Autenticação Zero-Trust Ativa</span>
           </div>
         </div>
-      </div>
 
+        <div style={{ marginTop: 32, fontSize: 12, color: '#52525b', display: 'flex', gap: 16 }}>
+          <a href="#" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#a1a1aa'} onMouseOut={e => e.currentTarget.style.color = '#52525b'}>Termos de Serviço</a>
+          <span>•</span>
+          <a href="#" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#a1a1aa'} onMouseOut={e => e.currentTarget.style.color = '#52525b'}>Privacidade</a>
+          <span>•</span>
+          <a href="#" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#a1a1aa'} onMouseOut={e => e.currentTarget.style.color = '#52525b'}>Ajuda</a>
+        </div>
+      </div>
     </div>
   );
 }
+
